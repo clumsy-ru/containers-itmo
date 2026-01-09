@@ -47,7 +47,7 @@ kubectl get deploy
 kubectl get pods
 kubectl get svc
 ```
-
+![kubectl get deploy/pods/svc](screenshot_001.jpg)
 
 
 ---
@@ -58,6 +58,7 @@ kubectl get svc
 ```bash
 minikube service lab4-nginx
 ```
+![Открытие сервиса](screenshot_002.jpg)
 
 ---
 
@@ -67,3 +68,4 @@ minikube service lab4-nginx
 ```bash
 kubectl exec -it deploy/lab4-app -- sh -lc "ls -la /data && cat /data/counter.txt && tail -n 10 /data/app.log"
 ```
+![Проверка volume /data](screenshot_003.jpg)
