@@ -1,0 +1,12 @@
+FROM python:latest
+
+RUN apt-get update
+RUN apt-get install -y vim curl build-essential
+
+COPY . /app
+
+RUN pip install -r /app/requirements.txt
+
+EXPOSE 8000
+
+CMD python /app/app.py

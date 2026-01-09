@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nextcloud-secret
+  labels:
+    app: nextcloud
+type: Opaque
+stringData:
+  NEXTCLOUD_ADMIN_PASSWORD: "1234"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud
+  labels:
+    app: nextcloud
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nextcloud
+  template:
+    metadata:
+      labels:
+        app: nextcloud
+    spec:
+      containers:
+        - name: nextcloud
+          image: docker.io/nextcloud:stable-apache
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 250m
+              memory: 128Mi
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+
+          readinessProbe:
+            httpGet:
+              path: /status.php
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: 127.0.0.1
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 6
+
+          livenessProbe:
+            httpGet:
+              path: /status.php
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: 127.0.0.1
+            initialDelaySeconds: 120
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 6
+
+          envFrom:
+            - configMapRef:
+                name: nextcloud-configmap
+            - configMapRef:
+                name: postgres-configmap
+            - secretRef:
+                name: postgres-secret
+            - secretRef:
+                name: nextcloud-secret
+
+      restartPolicy: Always
+      dnsPolicy: ClusterFirst

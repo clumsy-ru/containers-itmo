@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nextcloud
+  template:
+    metadata:
+      labels:
+        app: nextcloud
+    spec:
+      containers:
+        - name: nextcloud
+          image: docker.io/nextcloud:stable-apache
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: nextcloud-configmap
+            - configMapRef:
+                name: postgres-configmap
+            - secretRef:
+                name: postgres-secret
+            - secretRef:
+                name: nextcloud-secret
+          readinessProbe:
+            httpGet:
+              path: /status.php
+              port: 80
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /status.php
+              port: 80
+            initialDelaySeconds: 60
+            periodSeconds: 20
