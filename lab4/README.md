@@ -48,3 +48,22 @@ kubectl get pods
 kubectl get svc
 ```
 
+
+
+---
+
+## Проверка работы
+
+### Открытие сервиса в браузере
+```bash
+minikube service lab4-nginx
+```
+
+---
+
+### Проверка volume (/data)
+Проверка, что файлы в `/data` созданы и обновляются:
+
+```bash
+kubectl exec -it deploy/lab4-app -- sh -lc "ls -la /data && cat /data/counter.txt && tail -n 10 /data/app.log"
+```
