@@ -1,0 +1,75 @@
+x-app-build: &app_build
+  build:
+    context: .
+    dockerfile: Dockerfile
+  image: lab4-app:1.0
+
+x-app-image: &app_image
+  image: lab4-app:1.0
+
+services:
+  app:
+    <<: *app_build
+    container_name: lab4-app
+    env_file:
+      - .env
+    volumes:
+      - app_data:/data
+    networks:
+      - lab4-net
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=2).read()\""
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+
+  init:
+    <<: *app_image
+    container_name: lab4-init
+    env_file:
+      - .env
+    volumes:
+      - app_data:/data
+      - ./init:/init:ro
+    networks:
+      - lab4-net
+    entrypoint: ["sh", "/init/init.sh"]
+    restart: "no"
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    image: lab4-nginx:1.0
+    container_name: lab4-nginx
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "${PUBLIC_PORT}:8080"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - lab4-net
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://localhost:8080/health || exit 1" ]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+
+volumes:
+  app_data:
+
+networks:
+  lab4-net:
+    name: lab4-net
+    driver: bridge

@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lab4-nginx
+  labels:
+    app: lab4
+    component: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lab4
+      component: nginx
+  template:
+    metadata:
+      labels:
+        app: lab4
+        component: nginx
+        tier: proxy
+    spec:
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: lab4-nginx-config
+            items:
+              - key: default.conf
+                path: default.conf
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 5

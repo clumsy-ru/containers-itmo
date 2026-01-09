@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lab4-app
+  labels:
+    app: lab4
+    component: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lab4
+      component: app
+  template:
+    metadata:
+      labels:
+        app: lab4
+        component: app
+        tier: backend
+    spec:
+      volumes:
+        - name: app-data
+          emptyDir: {}
+
+      initContainers:
+        - name: init-data
+          image: busybox:1.36
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              mkdir -p /data &&
+              [ -f /data/counter.txt ] || echo "0" > /data/counter.txt &&
+              [ -f /data/app.log ] || : > /data/app.log &&
+              chown -R 10001:10001 /data &&
+              echo "[init] data initialized"
+          volumeMounts:
+            - name: app-data
+              mountPath: /data
+
+      containers:
+        - name: app
+          image: lab4-app:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: lab4-app-config
+            - secretRef:
+                name: lab4-app-secret
+          volumeMounts:
+            - name: app-data
+              mountPath: /data
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 2
+            periodSeconds: 5
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
