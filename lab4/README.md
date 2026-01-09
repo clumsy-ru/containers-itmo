@@ -72,7 +72,7 @@ kubectl exec -it deploy/lab4-app -- sh -lc "ls -la /data && cat /data/counter.tx
 
 ---
 
-## Describe Pod (пруф init/volume/probes)
+## Describe Pod (init/volume/probes)
 ```bash
 kubectl describe pod -l component=app
 ```
