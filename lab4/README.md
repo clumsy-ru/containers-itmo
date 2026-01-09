@@ -69,3 +69,11 @@ minikube service lab4-nginx
 kubectl exec -it deploy/lab4-app -- sh -lc "ls -la /data && cat /data/counter.txt && tail -n 10 /data/app.log"
 ```
 ![Проверка volume /data](screenshot_003.jpg)
+
+---
+
+## Describe Pod (пруф init/volume/probes)
+```bash
+kubectl describe pod -l component=app
+```
+![describe](screenshot_004.jpg)
